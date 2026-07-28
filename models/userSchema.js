@@ -20,6 +20,21 @@ const user = new mongoose.Schema({
         required : true,
     },
     tokenLimit:{
-        type: 
+        type: Number,
+        default : 200000
+    },
+    usage:{
+        tokenUsed:{
+            type:Number,
+            default :0
+        }
+    },
+    reSetAt:{
+    typee:Number,
+    default :()=> new Date(Date.now() + 5*1000*60*60) // reset after 5 Hours
     }
-},{timestamps:true})
+},{timestamps:true});
+
+const userSchema = mongoose.model('User',userSchema);
+
+export default userSchema;
