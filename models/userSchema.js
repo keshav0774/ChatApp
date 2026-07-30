@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const user = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name:{
         type :String,
         required:true,
@@ -34,12 +34,12 @@ const user = new mongoose.Schema({
         default : 200000
     },
     lastLogin:{
-        type : TimeRanges,
-        default :Date.now()
+        type : Number,
+        default :Date.now
     },
     lastLogout :{
-        type : TimeRanges,
-        default :  Date.now()
+        type : Number,
+        default :  Date.now,
     },
     usage:{
         tokenUsed:{
@@ -47,7 +47,7 @@ const user = new mongoose.Schema({
             default :0
         },
         reSetAt:{
-         typee:Number,
+         type:Number,
             default :()=> new Date(Date.now() + 5*1000*60*60) // reset after 5 Hours
         },
         totalTokenUsed:{
@@ -57,6 +57,6 @@ const user = new mongoose.Schema({
     }
 },{timestamps:true});
 
-const userSchema = mongoose.model('User',userSchema);
+const User = mongoose.model('User',userSchema);
 
-export default userSchema;
+export default User;
