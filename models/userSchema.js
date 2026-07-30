@@ -19,19 +19,41 @@ const user = new mongoose.Schema({
         type : String,
         required : true,
     },
+    isSubscription:{
+        type : Boolean,
+        default: false
+    },
+    subscriptionPlan:{
+        type:String,
+        enum:['free','pro','enterprise'],
+        default : 'free',
+    },
+   
     tokenLimit:{
         type: Number,
         default : 200000
+    },
+    lastLogin:{
+        type : TimeRanges,
+        default :Date.now()
+    },
+    lastLogout :{
+        type : TimeRanges,
+        default :  Date.now()
     },
     usage:{
         tokenUsed:{
             type:Number,
             default :0
+        },
+        reSetAt:{
+         typee:Number,
+            default :()=> new Date(Date.now() + 5*1000*60*60) // reset after 5 Hours
+        },
+        totalTokenUsed:{
+            type : Number,
+            default:0
         }
-    },
-    reSetAt:{
-    typee:Number,
-    default :()=> new Date(Date.now() + 5*1000*60*60) // reset after 5 Hours
     }
 },{timestamps:true});
 
