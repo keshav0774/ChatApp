@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const chats = new mongoose.Schema({
+const chatSchema = new mongoose.Schema({
     userId :{
         type : mongoose.Schema.Types.ObjectId,
         ref : "User",
@@ -51,10 +51,10 @@ const chats = new mongoose.Schema({
       default: 0
     }
   }
-})
+},{timestamps : true})
 
 chatSchema.index({ userId: 1, updatedAt: -1 });
 
-const chatSchema = mongoose.model('chats',chatSchema);
+const Chat = mongoose.model('Chat',chatSchema);
 
-export default chatSchema;
+export default Chat;
