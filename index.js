@@ -1,8 +1,9 @@
 import express from 'express';
 import dotenv from "dotenv"
 import connectToMongoDb from './config/database.js';
-import dns from 'dns';
 import cookieParser from 'cookie-parser';
+import userRouter from './routes/userRoutes.js';
+import dns from 'dns';
 dns.setServers(['8.8.8.8','8.8.4.4'])
 
 
@@ -11,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-
+app.use('/user',userRouter);
 const Port = 3000;
 
 const startServer = async ()=>{

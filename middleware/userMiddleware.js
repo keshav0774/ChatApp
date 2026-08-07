@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/userSchema.js';
+import cookieParser from "cookie-parser";
+
 
 
 export const authmiddleWare = async (req,res,next)=>{

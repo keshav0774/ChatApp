@@ -2,6 +2,8 @@ import User from "../models/userSchema.js";
 import Chat from "../models/chatSchema.js";
 import Message from "../models/messageSchema.js";
 import bcrypt from 'bcrypt';
+import cookieParser from "cookie-parser";
+
 import jwt from 'jsonwebtoken';
 
 export const signup = async(req,res)=>{
@@ -94,14 +96,14 @@ export const login = async(req,res)=>{
 
 export const logout = async(req,res)=>{
     try {
-        const {token} = req.cookies;
-        if(!token) {
-           return res.status(401).json({
-          message:"Invalid Credentials"
-        });
-        }
-
-        res.clearCookie("token", {expires: new Date(0),
+        // const {token} = req.cookies;
+        // if(!token) {
+        //    return res.status(401).json({
+        //   message:"Invalid Credentials"
+        // });
+        // }
+        console.log("api call")
+        res.clearCookie("token", {
          httpOnly:true,
          secure: process.env.NODE_ENV === "production",
         }
@@ -110,7 +112,7 @@ export const logout = async(req,res)=>{
             message :"Logges Out Successfully",
         })
     } catch (err) {
-        return res.json({
+        return res.status(500).json({
             error : err.message
         })
     }
@@ -139,7 +141,7 @@ export const profile = async (req,res)=>{
 
 
 
-const deleteAcount = async(req,res)=>{
+export const deleteAcount = async(req,res)=>{
     try {
         const userID = req.user._id; 
 
