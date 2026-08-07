@@ -1,5 +1,6 @@
 import User from "../models/userSchema.js";
-
+import Chat from "../models/chatSchema.js";
+import Message from "../models/messageSchema.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -136,3 +137,25 @@ export const profile = async (req,res)=>{
       }
 };
 
+
+
+const deleteAcount = async(req,res)=>{
+    try {
+        const userID = req.user._id; 
+
+        await Message.deleteMany({userId});
+        await Chat.deleteMany({userId});
+        await User.deleteOne({_id : userID});
+
+        res.clearCookie("token", {
+      httpOnly: true,
+      secure: false,
+    });
+    return res.status(200).json("User deleted Successfully");
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Internal Server Error"
+        })
+    }
+}
