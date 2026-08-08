@@ -6,7 +6,7 @@ const chatSchema = new mongoose.Schema({
         ref : "User",
         required : true,
     },
-    chatName:{
+    topic:{
         type :String,
         required : true,
         default : "New Chat"
@@ -14,6 +14,10 @@ const chatSchema = new mongoose.Schema({
     model : {
         type :String,
         required : true,
+    },
+    messageCount:{
+        type : Number, 
+        default : 0
     },
     summary:{
         type : String, 

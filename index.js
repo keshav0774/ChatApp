@@ -3,6 +3,8 @@ import dotenv from "dotenv"
 import connectToMongoDb from './config/database.js';
 import cookieParser from 'cookie-parser';
 import userRouter from './routes/userRoutes.js';
+import messageRouter from './routes/messageRoutes.js';
+import chatRouter from './routes/chatRoutes.js';
 import dns from 'dns';
 dns.setServers(['8.8.8.8','8.8.4.4'])
 
