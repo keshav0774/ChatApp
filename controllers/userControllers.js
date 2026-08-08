@@ -3,17 +3,19 @@ import Chat from "../models/chatSchema.js";
 import Message from "../models/messageSchema.js";
 import bcrypt from 'bcrypt';
 import cookieParser from "cookie-parser";
-
+import { signupSchema,loginSchema } from "../validator/validator.js";
 import jwt from 'jsonwebtoken';
 
 export const signup = async(req,res)=>{
    try {
-    const {name, email , password} = req.body;
-    if(!name || !email || !password){
+
+    const result = signupSchema.safeParse(req.body);
+    if(!result){
         return res.status(400).json({
-            message : "Something is missing"
-        });
+                message: result.error.issues[0].message
+            })
     }
+    const {name, email , password} = result.data;
 
     const checkUser = await User.findOne({email : email});
     if(checkUser){
@@ -54,10 +56,17 @@ export const signup = async(req,res)=>{
 
 export const login = async(req,res)=>{
    try {
-        const {email , password} = req.body; 
-        if(!email || !password) 
-      throw new Error("Invalid Credentials");
-        const user = await User.findOne({email : email});
+      
+    const result = loginSchema.safeParse(req.body);
+    if(!result){
+        return res.status(400).json({
+            message : result.error.issues[0].message
+        })
+    }
+    
+    
+    const {email , password} = result.data; 
+    
         if(!user){
         return res.status(401).json({message : "Invalid Credential"});
         }
@@ -96,13 +105,8 @@ export const login = async(req,res)=>{
 
 export const logout = async(req,res)=>{
     try {
-        // const {token} = req.cookies;
-        // if(!token) {
-        //    return res.status(401).json({
-        //   message:"Invalid Credentials"
-        // });
-        // }
-        console.log("api call")
+      
+       
         res.clearCookie("token", {
          httpOnly:true,
          secure: process.env.NODE_ENV === "production",
