@@ -1,7 +1,10 @@
 import User from "../models/userSchema.js";
 import Chat from "../models/chatSchema.js";
 import Message from "../models/messageSchema.js";
-
+import { generateAIResponse } from "../services/openRouterService.js";
+import { buildMessageForAI } from "../utlis/chatContext.js";
+import {resetUsageIfNeeded, hasTokenLimitReached, addUserTokenUsage} from '../utlis/userUsage.js'
+import { updateSummaryIfNeeded } from "../services/summaryService.js";
 
 export const getMessage = async(req,res)=>{
     try {
@@ -78,8 +81,13 @@ export const sendMessage = async(req,res)=>{
             role : "assistant",
             content : aiReply
 
-        })
-        const aiReply = "AI reply will come here later.";
+        });
+
+        resetUsageIfNeeded();
+        hasTokenLimitReached();
+
+        const message = await buildMessageForAI({})
+        const aiReply = await generateAIResponse({model , messagess});
 
         const assistantMessage = await Message.create({
          chatId: chat._id,
@@ -87,21 +95,22 @@ export const sendMessage = async(req,res)=>{
          content: aiReply,
           userId: req.user._id
          });
+
         chat.messageCount += 2;
 
         if (chat.topic === "New Chat") {
       chat.topic = content.trim().slice(0, 40);
     }
-
-    return res.status(200).json({
+    
+    res.status(200).json({
         message : "Ai reply",
         chatId : chat._id, 
         userMessage,
         assistantMessage
     })
-
+    updateSummaryIfNeeded(); 
         
-    } catch (error) {
+} catch (error) {
         return res.status(500).json({
             message : "Internal Server Error"
         })
