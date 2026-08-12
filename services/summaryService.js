@@ -1,7 +1,8 @@
-import Chat from "../model/chatSchema.js";
-import Message from "../model/messageSchema.js";
-import User from "../model/userSchema.js";
+
+import Message from "../models/messageSchema.js";
+import User from "../models/userSchema.js";
 import { generateAIResponse } from "./openRouterService.js";
+import Chat from "../models/chatSchema.js";
 
 const SUMMARY_CHUNK_SIZE = 20;
 

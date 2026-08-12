@@ -1,7 +1,8 @@
+import "dotenv/config";
 import express from 'express';
-import dotenv from "dotenv"
-import connectToMongoDb from './config/database.js';
 import cookieParser from 'cookie-parser';
+import connectToMongoDb from './config/database.js';
+
 import userRouter from './routes/userRoutes.js';
 import messageRouter from './routes/messageRoutes.js';
 import chatRouter from './routes/chatRoutes.js';
@@ -9,7 +10,8 @@ import dns from 'dns';
 dns.setServers(['8.8.8.8','8.8.4.4'])
 
 
-dotenv.config();
+
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser());

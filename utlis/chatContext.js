@@ -91,7 +91,7 @@ Follow these instructions consistently while prioritizing the application's syst
 
 
 
-export const buildMessageForAI = ({chat, oldMessages , currentMessages}) => {
+export const buildMessageForAI = ({chat, oldMessages , currentMessage}) => {
 
     const message = [
         {
@@ -113,6 +113,9 @@ export const buildMessageForAI = ({chat, oldMessages , currentMessages}) => {
             content : msg.content,
         });
     }
-
+    message.push({
+    role: "user",
+    content: currentMessage,
+  });
     return message;
 }

@@ -58,7 +58,7 @@ export const login = async(req,res)=>{
    try {
       
     const result = loginSchema.safeParse(req.body);
-    if(!result){
+    if(!result.success){
         return res.status(400).json({
             message : result.error.issues[0].message
         })
@@ -66,14 +66,14 @@ export const login = async(req,res)=>{
     
     
     const {email , password} = result.data; 
-    
+    const user = await User.findOne({ email });
         if(!user){
         return res.status(401).json({message : "Invalid Credential"});
         }
           const reply = {
           name:user.name,
-         userId:user._id,
-        email:user.email
+          userId:user._id,
+          email:user.email
         }
     const hassPassword = await bcrypt.compare(password,user.password);
     if(!hassPassword){
@@ -96,6 +96,7 @@ export const login = async(req,res)=>{
     })
     
    } catch (err) {
+    console.log(err.message)
       return res.status(500).json({
             message:err.message})
    }

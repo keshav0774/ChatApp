@@ -5,7 +5,7 @@ import openRouter from "../config/opneRouter.js";
 
 export const generateAIResponse = async({model , messages})=>{
 
-    openRouter.chat.send({
+   const completion = await openRouter.chat.send({
         chatRequest:{
             model,
             messages

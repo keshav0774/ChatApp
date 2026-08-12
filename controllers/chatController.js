@@ -22,7 +22,7 @@ export const getChatById = async(req,res)=>{
    try {
      const {chatId} = req.params;
 
-     const chat = await chatSchema.findOne({_id: chatId, userId : req.user._id}); 
+     const chat = await Chat.findOne({_id: chatId, userId : req.user._id}); 
      if(!chat) return res.status(500).json({messaage : "sorry, chat not found"})
      return res.status(200).json({
         message : "chat is here", 
@@ -40,9 +40,10 @@ export const getChatById = async(req,res)=>{
 
 export const deleteChat = async(req,res)=>{
     try {
-        const {chatId} = req.params,
+        
+        const {chatId} = req.params;
 
-        const chat = await chatSchema.findOne({userId : req.user._id , _id : chatId});
+        const chat = await Chat.findOne({userId : req.user._id , _id : chatId});
         if(!chat) return res.status(403).json({message : "chat not found"});
 
         await Message.deleteMany({
@@ -106,11 +107,11 @@ export const newChat = async(req,res)=>{
             })
         }
 
-        const chat = await chatSchema.create({userId : req.user._id, model : model})
+        const chat = await Chat.create({userId : req.user._id, model : model})
 
         return res.status(201).json({
             message : "Chat created succesfully", 
-            chatId = chat._id,
+            chatId : chat._id,
             topic : chat.chatName,
             userId : chat.userId,
             createdAt: chat.createdAt

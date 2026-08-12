@@ -5,6 +5,10 @@ import { generateAIResponse } from "../services/openRouterService.js";
 import { buildMessageForAI } from "../utlis/chatContext.js";
 import {resetUsageIfNeeded, hasTokenLimitReached, addUserTokenUsage} from '../utlis/userUsage.js'
 import { updateSummaryIfNeeded } from "../services/summaryService.js";
+import { addChatTokenUsage } from "../utlis/tokenUsage.js";
+
+
+
 
 export const getMessage = async(req,res)=>{
     try {
@@ -13,22 +17,22 @@ export const getMessage = async(req,res)=>{
         const chat = await Chat.findOne({
             _id : chatId,
             userId : req.user._id
-        })
-        const message = await Message.findOne(({
+        });
+        const message = await Message.find(({
             chatId : chatId, 
             userId : req.user._id
-        })).sort({createdAt:1}) 
+        })).sort({createdAt:1});
 
-        if(!chatID || !chat || !message){
+        if(!chatId || !chat || !message){
             return res.status(403).json({
                 message : "Chat not found Something Wrong"
-            })
+            });
         }
 
         return res.status(200).json({
-            message : "Chat are foun",
+            message : "Chat are found",
             msg  : message
-        })
+        });
     } catch (error) {
         return res.status(500).json({
             message : error.message
@@ -38,7 +42,7 @@ export const getMessage = async(req,res)=>{
 
 export const sendMessage = async(req,res)=>{
     try {
-        const {ChatId} = req.params;
+        const {chatId} = req.params;
         const {content , model} = req.body ; 
 
         if(!content || content.trim() === ""){
@@ -46,10 +50,22 @@ export const sendMessage = async(req,res)=>{
                 message : "Send the Message please"
             })
         }
+        
+        // check user token limit 
+        await resetUsageIfNeeded(req.user);
+        // if token limit is reached 
+        if(hasTokenLimitReached(req.user)){
+           return res.status(429).json({
+            message : "Token limit reached. Please try after some time.",
+            usage : req.user.usage
+           });
+        }
 
-        if(ChatId){
+        let chat;
 
-            const chat = await Chat.findOne({
+        if(chatId){
+
+            chat = await Chat.findOne({
                 _id : chatId,
                 userId : req.user._id
             }); 
@@ -63,54 +79,72 @@ export const sendMessage = async(req,res)=>{
         else {
             if(!model){
                 return res.status(400).json({
-                    message : " model is required"
+                    message : " model is required for new chat"
                 })
             }
-
-            const chat = await Chat.create({
-                userId : req.userId,
+            console.log("Api is calling")
+             chat = await Chat.create({
+                userId : req.user._id,
                 model, 
                 topic : content.trim().slice(0,40)
             })
             
         }
 
-        const userMessage = await Message.create({
-            userId : req.user._id,
-            chatId : chat._id,
-            role : "assistant",
-            content : aiReply
+        
+        const oldMessages = await Message.find({
+            chatId : chat._id
+        }).sort({createdAt : 1})
+        .skip(chat.summarizedTillMessageNumber);
 
+
+        const messageForAI = await buildMessageForAI({
+            chat,
+            oldMessages,
+            currentMessage : content.trim(),
+        });
+        console.dir(messageForAI, { depth: null });
+        const {aiReply, usage} = await generateAIResponse({
+            model : chat.model,
+            messages : messageForAI,
         });
 
-        resetUsageIfNeeded();
-        hasTokenLimitReached();
-
-        const message = await buildMessageForAI({})
-        const aiReply = await generateAIResponse({model , messagess});
-
+        const userMessage = await Message.create({
+            chatId : chat._id,
+            role : "user",
+            content : content.trim(), 
+            userId : req.user._id,
+            usage,
+        });
+        
         const assistantMessage = await Message.create({
          chatId: chat._id,
          role: "assistant",
          content: aiReply,
-          userId: req.user._id
-         });
+         userId: req.user._id
+        });
 
         chat.messageCount += 2;
-
+        
         if (chat.topic === "New Chat") {
-      chat.topic = content.trim().slice(0, 40);
-    }
-    
+        chat.topic = content.trim().slice(0, 40);
+        }
+
+        await addChatTokenUsage(chat, usage);
+        await addUserTokenUsage(req.user, usage.totalTokens);
+        await chat.save();
     res.status(200).json({
-        message : "Ai reply",
+        message : "Message sent successfully",
         chatId : chat._id, 
+        reply : aiReply,
+        usage,
         userMessage,
         assistantMessage
     })
-    updateSummaryIfNeeded(); 
+   await updateSummaryIfNeeded(chat._id); 
         
 } catch (error) {
+    console.log("ERROR from message controllers",error)
         return res.status(500).json({
             message : "Internal Server Error"
         })
