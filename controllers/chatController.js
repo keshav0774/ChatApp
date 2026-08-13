@@ -2,6 +2,7 @@
 import Message from "../models/messageSchema.js";
 import mongoose from "mongoose";
 import Chat from "../models/chatSchema.js";
+import messageRouter from "../routes/messageRoutes.js";
 
 export const getRecentChat = async(req,res)=>{
     try {
@@ -116,6 +117,85 @@ export const newChat = async(req,res)=>{
             userId : chat.userId,
             createdAt: chat.createdAt
         })
+    } catch (error) {
+        return res.status(500).json({
+            message : "Internal Server Error"
+        })
+    }
+}
+
+export const searchChat = async(req,res)=>{  
+    try {
+        const { q } = req.query;
+
+        if(!q?.trim()){
+            return res.status(404).json({
+                message : "Search query is reqired"
+            });
+        }
+
+        const chats = await Chat.find({
+            userId : req.user._id,
+            topic :{
+                $regex : q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+
+                $options : 'i'
+            }
+        })
+        .select("_id topic updatedAt")
+        .sort({updatedAt : -1})
+        .limit(20);
+
+        if (chats.length === 0) {
+             return res.status(200).json({
+                message: "No chats found",
+                chats: []
+            });
+        }
+
+        return res.status(200).json({
+            message : "Chat are here", 
+            chats
+        })
+    } catch (error) {
+        console.error("SEARCH CHAT ERROR:", error);
+        return res.status(500).json({
+            message : "Internal Server Error"
+        })
+    }
+}
+
+export const renameChat = async(req,res)=>{
+    try {
+        const { chatId } = req.params;
+
+        const {topic} = req.body;
+
+        if(!topic?.trim()){
+            return res.status(404).json({
+                message : "Enter chat name"
+            });
+        }
+
+        const chat = await Chat.findOne({
+            userId : req.user._id,
+            _id : chatId
+        });
+        
+        if(!chat){
+            return res.status(404).json({
+                message : "Chat not Found"
+            });
+        }
+        chat.topic = topic.trim();
+        await chat.save();
+
+        return res.status(200).json({
+            message : "Chat Updated",
+            chat
+        });
+
+        cons
     } catch (error) {
         return res.status(500).json({
             message : "Internal Server Error"

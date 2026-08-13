@@ -40,7 +40,7 @@ export const getMessage = async(req,res)=>{
     }
 }
 
-export const sendMessage = async(req,res)=>{
+export const sendMessage = async(req,res)=>{ 
     try {
         const {chatId} = req.params;
         const {content , model} = req.body ; 
@@ -101,7 +101,7 @@ export const sendMessage = async(req,res)=>{
         const messageForAI = await buildMessageForAI({
             chat,
             oldMessages,
-            currentMessage : content.trim(),
+            currentMessage : content.trim() +  "Please generate a fresh alternative response. Do not repeat the previous response."
         });
         console.dir(messageForAI, { depth: null });
         const {aiReply, usage} = await generateAIResponse({
@@ -145,6 +145,83 @@ export const sendMessage = async(req,res)=>{
         
 } catch (error) {
     console.log("ERROR from message controllers",error)
+        return res.status(500).json({
+            message : "Internal Server Error"
+        })
+    }
+}
+
+export const reGenrate = async(req,res)=>{
+    try {
+        const {chatId} = req.params;
+        
+        const chat = await Chat.findOne({
+                _id : chatId,
+                userId : req.user._id
+        }); 
+        
+        if(!chatId || !chat){
+            return res.status(404).json({
+                message : "Chat not found"
+            })
+        }
+
+        await resetUsageIfNeeded(req.user);
+        // if token limit is reached 
+        if(hasTokenLimitReached(req.user)){
+           return res.status(429).json({
+            message : "Token limit reached. Please try after some time.",
+            usage : req.user.usage
+           });
+        }
+
+        const messages = await Message.find({
+            chatId : chat._id,
+            userId : req.user._id
+        }).sort({createdAt : -1});
+        
+        const userMessage = messages[1];
+
+        const assistantMessage = messages[0];
+
+        if(!userMessage || !assistantMessage){
+            return res.status(404).json({
+                message : "We can't fetch the messages"
+            })
+        }
+
+        const oldMessages = messages.slice(2).reverse();
+
+        const messageForAI = buildMessageForAI({
+            chat,
+            oldMessages,
+            currentMessage: userMessage.content
+        });
+
+        const { aiReply, usage } = await generateAIResponse({
+              model: chat.model,
+              messages: messageForAI
+        });
+         
+        assistantMessage.content = aiReply;
+        assistantMessage.usage = usage;
+
+        chat.messageCount += 2;
+
+        await addChatTokenUsage(chat, usage);
+        await addUserTokenUsage(req.user, usage.totalTokens);
+        await chat.save();
+        
+        res.status(200).json({
+        message : "Message sent successfully",
+        chatId : chat._id, 
+        reply : aiReply,
+        usage,
+        userMessage,
+        assistantMessage
+       })
+
+    } catch (error) {
         return res.status(500).json({
             message : "Internal Server Error"
         })
