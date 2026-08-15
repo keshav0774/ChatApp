@@ -50,7 +50,7 @@ export const deleteChat = async(req,res)=>{
         await Message.deleteMany({
             chatId : chat._id,
         })
-        await chatSchema.deleteOne({_id : chatId});
+        await Chat.deleteOne({_id : chatId});
 
         return res.status(200).json({message : "Chat deleted Successfully"});
     } catch (error) {
@@ -87,7 +87,7 @@ export const markAsFavChat = async(req,res)=>{
 
 export const getAllFavChat = async(req,res)=>{
     try {
-          const chats = await Chat.find({userId : req.user._id}).select('topic isFavorite updatedAt').sort({updatedAt : -1});
+          const chats = await Chat.find({userId : req.user._id, isFavorite: true}).select('topic isFavorite updatedAt').sort({updatedAt : -1});
 
           return res.status(200).json({
             message : 'all chats are here',

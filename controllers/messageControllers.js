@@ -42,7 +42,7 @@ export const getMessage = async(req,res)=>{
 
 export const sendMessage = async(req,res)=>{ 
     try {
-        
+        console.log("send message hit");
         const {chatId} = req.params;
         const {content , model} = req.body ; 
 
@@ -102,14 +102,14 @@ export const sendMessage = async(req,res)=>{
         const messageForAI = await buildMessageForAI({
             chat,
             oldMessages,
-            currentMessage : content.trim() +  "Please generate a fresh alternative response. Do not repeat the previous response."
+            currentMessage : content.trim() 
         });
         console.dir(messageForAI, { depth: null });
         const {aiReply, usage} = await generateAIResponse({
             model : chat.model,
             messages : messageForAI,
         });
-
+        console.log('ai reply' , aiReply);
         const userMessage = await Message.create({
             chatId : chat._id,
             role : "user",
@@ -124,7 +124,7 @@ export const sendMessage = async(req,res)=>{
          content: aiReply,
          userId: req.user._id
         });
-
+        
         chat.messageCount += 2;
         
         if (chat.topic === "New Chat") {
@@ -155,7 +155,7 @@ export const sendMessage = async(req,res)=>{
 export const reGenrate = async(req,res)=>{
     try {
         const {chatId} = req.params;
-        
+        console.log("regenerate is hit");
         const chat = await Chat.findOne({
                 _id : chatId,
                 userId : req.user._id
@@ -196,7 +196,7 @@ export const reGenrate = async(req,res)=>{
         const messageForAI = buildMessageForAI({
             chat,
             oldMessages,
-            currentMessage: userMessage.content
+            currentMessage: userMessage.content + 'Please generate a fresh alternative response. Do not repeat the previous response.'
         });
 
         const { aiReply, usage } = await generateAIResponse({
