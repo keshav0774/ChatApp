@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import connectToMongoDb from './config/database.js';
-
+import cors from 'cors';
 import userRouter from './routes/userRoutes.js';
 import messageRouter from './routes/messageRoutes.js';
 import chatRouter from './routes/chatRoutes.js';
@@ -13,6 +13,11 @@ dns.setServers(['8.8.8.8','8.8.4.4'])
 
 
 const app = express();
+
+app.use(cors({
+    origin : 'http://localhost:5173',
+    credentials: true
+}))
 app.use(express.json());
 app.use(cookieParser());
 

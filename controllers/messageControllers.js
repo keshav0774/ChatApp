@@ -42,6 +42,7 @@ export const getMessage = async(req,res)=>{
 
 export const sendMessage = async(req,res)=>{ 
     try {
+        
         const {chatId} = req.params;
         const {content , model} = req.body ; 
 

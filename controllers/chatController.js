@@ -6,7 +6,7 @@ import messageRouter from "../routes/messageRoutes.js";
 
 export const getRecentChat = async(req,res)=>{
     try {
-        const chats = await chatSchema.find({userId : req.user._id}).select('chatName updatedAt').sort({updatedAt : -1});
+        const chats = await Chat.find({userId : req.user._id}).select('topic updatedAt').sort({updatedAt : -1});
 
         return res.status(200).json({
             messaage: "All Chats are here", 
@@ -29,7 +29,7 @@ export const getChatById = async(req,res)=>{
         message : "chat is here", 
         chatId : chat._id,
         userId : chat.userId,
-        topic : chat.chatName,
+        topic : chat.topic,
         usage : chat.usage
      })
    } catch (error) {
@@ -63,13 +63,14 @@ export const deleteChat = async(req,res)=>{
 export const markAsFavChat = async(req,res)=>{
     try {
         const {chatId} = req.params; 
-
-        const chat = await chatSchema.findOne({userId : req.user._id, chatId});
+       
+         const {favorite} = req.body;
+         const chat = await Chat.findOne({userId : req.user._id, _id: chatId});
         if(!chat) return res.status(403).json({
             message : "Chat not founnd"
         })
 
-        chat.isFavorite = true; 
+        chat.isFavorite = favorite; 
         await chat.save();
 
         return res.status(200).json({
@@ -86,7 +87,7 @@ export const markAsFavChat = async(req,res)=>{
 
 export const getAllFavChat = async(req,res)=>{
     try {
-          const chats = await chatSchema.find({userId : req.user_id}).select('chatName isFavorite updateAt').sort({updatedAt : -1});
+          const chats = await Chat.find({userId : req.user._id}).select('topic isFavorite updatedAt').sort({updatedAt : -1});
 
           return res.status(200).json({
             message : 'all chats are here',
@@ -113,7 +114,7 @@ export const newChat = async(req,res)=>{
         return res.status(201).json({
             message : "Chat created succesfully", 
             chatId : chat._id,
-            topic : chat.chatName,
+            topic : chat.topic,
             userId : chat.userId,
             createdAt: chat.createdAt
         })
@@ -194,8 +195,6 @@ export const renameChat = async(req,res)=>{
             message : "Chat Updated",
             chat
         });
-
-        cons
     } catch (error) {
         return res.status(500).json({
             message : "Internal Server Error"
