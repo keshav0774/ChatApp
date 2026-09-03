@@ -26,4 +26,29 @@ export const unauthenticatedRatelimiter = async(req,res,next)=>{
 
         next();
     }
+};
+
+export const authenticateRatelimiter = async(req,res,next)=>{
+    try {
+        const {_id} = req.user._id;
+
+        const key = `rate-limiter:userId : ${_id}`;
+
+        const limit = await redisClient.incr(key);
+
+        if(limit ===1){
+           await redisClient.expire(key,120);
+        }else{
+            if(limit > 25){
+                const remainTime = await redisClient.ttl(key);
+                res.status(401).json({
+                    message : `To many request. Try again after ${remainTime} time`
+                })
+            }
+        }
+        next();
+    } catch (error) {
+        console.log("Authenticate RateLimiter Error:", error.message);
+        next();
+    }
 }
