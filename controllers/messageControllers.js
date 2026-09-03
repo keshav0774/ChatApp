@@ -42,7 +42,7 @@ export const getMessage = async(req,res)=>{
 
 export const sendMessage = async(req,res)=>{ 
     try {
-        console.log("send message hit");
+      
         const {chatId} = req.params;
         const {content , model} = req.body ; 
 
@@ -83,7 +83,7 @@ export const sendMessage = async(req,res)=>{
                     message : " model is required for new chat"
                 })
             }
-            console.log("Api is calling")
+            
              chat = await Chat.create({
                 userId : req.user._id,
                 model, 
@@ -155,7 +155,7 @@ export const sendMessage = async(req,res)=>{
 export const reGenrate = async(req,res)=>{
     try {
         const {chatId} = req.params;
-        console.log("regenerate is hit");
+       
         const chat = await Chat.findOne({
                 _id : chatId,
                 userId : req.user._id

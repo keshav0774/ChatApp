@@ -159,7 +159,7 @@ export const searchChat = async(req,res)=>{
             chats
         })
     } catch (error) {
-        console.error("SEARCH CHAT ERROR:", error);
+        
         return res.status(500).json({
             message : "Internal Server Error"
         })
