@@ -1,4 +1,4 @@
-import redisClient from "../config/redis";
+import redisClient from "../config/redis.js";
 
 export const unauthenticatedRatelimiter = async(req,res,next)=>{
     try {
@@ -36,10 +36,10 @@ export const authenticateRatelimiter = async(req,res,next)=>{
 
         const limit = await redisClient.incr(key);
 
-        if(limit ===1){
-           await redisClient.expire(key,120);
+        if(limit === 1){
+           await redisClient.expire(key,90);
         }else{
-            if(limit > 25){
+            if(limit > 15){
                 const remainTime = await redisClient.ttl(key);
                 res.status(401).json({
                     message : `To many request. Try again after ${remainTime} time`

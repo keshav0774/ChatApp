@@ -9,7 +9,7 @@ const userRouter = express.Router();
 userRouter.post('/signup',unauthenticatedRatelimiter,signup);
 userRouter.post('/login',unauthenticatedRatelimiter,login);
 userRouter.post('/logout',authmiddleWare,authenticateRatelimiter,logout);
-userRouter.get('/profile',authmiddleWare,profile);
+userRouter.get('/profile',authmiddleWare,authenticateRatelimiter,profile);
 userRouter.post('/delete',authmiddleWare,authenticateRatelimiter,deleteAcount);
 userRouter.patch('/update',authmiddleWare, update);
 
