@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import cookieParser from "cookie-parser";
 import { signupSchema,loginSchema } from "../validator/validator.js";
 import jwt from 'jsonwebtoken';
+import redisClient from "../config/redis.js";
 
 export const signup = async(req,res)=>{
    try {
@@ -108,8 +109,24 @@ export const login = async(req,res)=>{
 
 export const logout = async(req,res)=>{
     try {
-      
-       
+        
+        const token = req.token ;
+        const payload = req.payload;
+
+        // Calculate remain time = expire time in payload  - current time;
+
+        const currentTime = Math.floor(Date.now()/1000);
+        const remainTime = payload.exp - currentTime;
+
+        if(remainTime > 0){
+            await redisClient.set(
+                `blockList : ${token}`,
+                "blocked",
+            {
+                EX : remainTime
+            }
+        );
+    }
         res.clearCookie("token", {
          httpOnly:true,
          secure: process.env.NODE_ENV === "production",
@@ -151,15 +168,15 @@ export const profile = async (req,res)=>{
 
 export const deleteAcount = async(req,res)=>{
     try {
-        const userID = req.user._id; 
+        const userId = req.user._id; 
 
         await Message.deleteMany({userId});
         await Chat.deleteMany({userId});
-        await User.deleteOne({_id : userID});
+        await User.deleteOne({_id : userId});
 
         res.clearCookie("token", {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       path : '/'
     });
     return res.status(200).json("User deleted Successfully");
