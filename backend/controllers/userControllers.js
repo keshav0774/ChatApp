@@ -11,7 +11,7 @@ export const signup = async(req,res)=>{
    try {
 
     const result = signupSchema.safeParse(req.body);
-    if(!result){
+    if(!result.success){
         return res.status(400).json({
                 message: result.error.issues[0].message
             })
@@ -78,9 +78,11 @@ export const login = async(req,res)=>{
           email:user.email
         }
     const hassPassword = await bcrypt.compare(password,user.password);
-    if(!hassPassword){
-        return res.json({message : "Invalid Credential"})
-    }
+    if (!hassPassword) {
+    return res.status(401).json({
+        message: "Invalid credentials"
+    });
+}
     const token = jwt.sign(
     {_id : user._id, email : user.email },
     process.env.JWT_SECRET,
@@ -101,7 +103,8 @@ export const login = async(req,res)=>{
    } catch (err) {
  
       return res.status(500).json({
-            message:err.message})
+            message:  "Internal Server Error"
+        })
    }
 
        

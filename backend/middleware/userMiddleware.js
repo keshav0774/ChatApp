@@ -9,7 +9,7 @@ export const authmiddleWare = async (req,res,next)=>{
     try {
         const { token } = req.cookies;
         if(!token){
-            return res.status(403).json({
+            return res.status(401).json({
                 message : "token not fount"
             })
         }
